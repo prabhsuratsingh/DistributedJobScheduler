@@ -22,7 +22,7 @@ services:
       retries: 5
 
   server:
-    container_name: featureflag-config-system
+    container_name: distributed-scheduler
     build:
       context: .
       dockerfile: app/Dockerfile
