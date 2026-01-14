@@ -7,6 +7,7 @@ from sqlalchemy.exc import OperationalError
 
 from app.core.queue import redis_client
 from app.database import db
+from app.api.jobs import router as job_router
 
 app = FastAPI()
 
@@ -37,6 +38,7 @@ async def health_postgres(db: Session = Depends(db.get_db)):
             "Error": OperationalError.__name__
         })
 
+app.include_router(job_router)
 
 if __name__ == "__main__":
     import uvicorn
