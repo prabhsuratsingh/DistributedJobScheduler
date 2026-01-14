@@ -7,6 +7,9 @@ from alembic import context
 
 from app.core.config import DATABASE_URL
 from app.database.base import Base
+from app.models import job
+from app.models import job_run
+from app.models import job_status
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
