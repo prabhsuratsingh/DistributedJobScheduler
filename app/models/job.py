@@ -13,6 +13,7 @@ class Job(Base):
     payload = Column(JSONB, nullable=False)
     schedule_time = Column(DateTime(timezone=True), nullable=False)
     cron = Column(String, nullable=True)
+    remarks = Column(String, nullable=True)
     max_retries = Column(Integer, nullable=False)
     status = Column(SQLEnum(JobStatus, name="job_status_enum"), nullable=False, default=JobStatus.PENDING)
 
