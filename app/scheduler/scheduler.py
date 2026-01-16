@@ -31,45 +31,47 @@ def scheduler():
 
                 db.add(job_run)
                 created_runs.append(job_run)
-                db.query(Job).filter(Job.id == job.id).update(Job.status == JobStatus.SCHEDULED)
+                db.query(Job).filter(Job.id == job.id).update({Job.status: JobStatus.SCHEDULED})
         
         for run in created_runs:
             try:
-                updated = db.query(JobRuns).filter(
+                enqueue_job(run.run_id)
+
+                db.query(JobRuns).filter(
                         JobRuns.run_id == run.run_id, 
                         JobRuns.status == JobStatus.CREATED
                     ).update({
                         JobRuns.status : JobStatus.ENQUEUED
                     })
-                if updated == 1:
-                    enqueue_job(run.run_id)
-                else:
-                    continue
+                # if updated == 1:
+                #     enqueue_job(run.run_id)
+                # else:
+                #     continue
 
             except:
                 db.query(JobRuns).filter(JobRuns.run_id == run.run_id).update({
                     JobRuns.status : JobStatus.CREATED
                 })
         
-        job_runs = db.query(JobRuns).filter(
-            JobRuns.status == JobStatus.CREATED,
-        ).with_for_update(skip_locked=True)
+        # job_runs = db.query(JobRuns).filter(
+        #     JobRuns.status == JobStatus.CREATED,
+        # ).with_for_update(skip_locked=True)
 
-        for jr in job_runs:
-            try:
-                updated = db.query(JobRuns).filter(
-                        JobRuns.run_id == jr.run_id, 
-                        JobRuns.status == JobStatus.CREATED
-                    ).update({
-                        JobRuns.status : JobStatus.ENQUEUED
-                    })
-                if updated == 1:
-                    enqueue_job(run.run_id)
-                else:
-                    continue
-            except:
-                db.query(JobRuns).filter(JobRuns.run_id == jr.run_id).update({
-                    JobRuns.status : JobStatus.CREATED
-                })
+        # for jr in job_runs:
+        #     try:
+        #         updated = db.query(JobRuns).filter(
+        #                 JobRuns.run_id == jr.run_id, 
+        #                 JobRuns.status == JobStatus.CREATED
+        #             ).update({
+        #                 JobRuns.status : JobStatus.ENQUEUED
+        #             })
+        #         if updated == 1:
+        #             enqueue_job(jr.run_id)
+        #         else:
+        #             continue
+        #     except:
+        #         db.query(JobRuns).filter(JobRuns.run_id == jr.run_id).update({
+        #             JobRuns.status : JobStatus.CREATED
+        #         })
 
         sleep(500)
