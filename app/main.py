@@ -5,11 +5,12 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import OperationalError
 
-from app.core.queue import redis_client
+from app.core.queue import get_redis
 from app.database import db
 from app.api.jobs import router as job_router
 
 app = FastAPI()
+redis_client = get_redis()
 
 @app.get("/health")
 async def health():

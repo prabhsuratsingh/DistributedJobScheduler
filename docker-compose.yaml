@@ -30,13 +30,40 @@ services:
       - "8080:8080"
     env_file:
       - .env
-    volumes:
-      - .:/app
+    # volumes:
+    #   - .:/app
     depends_on:
       redis:
         condition: service_healthy
       db:
         condition: service_started
+    
+  scheduler:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    command: uv run python -m app.scheduler
+    # volumes:
+    #   - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+  worker:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    command: uv run python -m app.worker
+    # volumes:
+    #   - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
 
 volumes:
   db_data:

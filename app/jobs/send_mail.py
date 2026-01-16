@@ -8,7 +8,7 @@ def send_mail(job_id, payload):
     db = SessionLocal()
 
     try:
-        sleep(1000)
+        sleep(10)
         
         db.query(Job).filter(Job.id == job_id).update({
             Job.remarks: "Job done successfully",

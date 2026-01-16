@@ -1,5 +1,6 @@
 from datetime import datetime
 import socket
+from uuid import UUID
 
 from app.core.queue import dequeue_job, enqueue_job
 from app.database.db import SessionLocal
@@ -11,33 +12,42 @@ from app.models.job_status import JobStatus
 WORKER_ID = socket.gethostname()
 
 def worker():
-    db = SessionLocal()
+    print("Worker Running")
 
     while True:
-        run_id = dequeue_job()
-
-        updated = db.query(JobRuns).filter(
-            JobRuns.run_id == run_id,
-            JobRuns.status == JobStatus.ENQUEUED
-        ).update({
-            JobRuns.status: JobStatus.RUNNING,
-            JobRuns.worker_id: WORKER_ID,
-            JobRuns.started_at: datetime.now()
-        })
-
-        db.commit()
-
-        if updated != 1:
-            continue
-
-        job, run = db.query(Job, JobRuns).join(
-            JobRuns, Job.id == JobRuns.job_id
-        ).filter(JobRuns.run_id == run_id).one()
-
         try:
+            print("Before worker dequeue")
+            run_id_raw = dequeue_job()
+            print("After worker dequeue")
+
+            run_id = UUID(run_id_raw)
+
+            print("[WORKER] dequeued run_id:", run_id, type(run_id))
+            db = SessionLocal()
+
+            updated = db.query(JobRuns).filter(
+                JobRuns.run_id == run_id,
+                JobRuns.status == JobStatus.ENQUEUED
+            ).update({
+                JobRuns.status: JobStatus.RUNNING,
+                JobRuns.worker_id: WORKER_ID,
+                JobRuns.started_at: datetime.now()
+            }, synchronize_session=False)
+            print("[WORKER] update result:", updated)
+
+            db.commit()
+
+            if updated != 1:
+                print("[WORKER] claim failed, re-enqueueing", run_id)
+                enqueue_job(run_id)
+                continue
+
+
+            job, run = db.query(Job, JobRuns).join(
+                JobRuns, Job.id == JobRuns.job_id
+            ).filter(JobRuns.run_id == run_id).one()
+
             job_func = JOB_REGISTRY.get(job.job_type)
-            # if not job_func:
-            #     raise ValueError(f"Unknown job_type: {job.job_type}")
             
             job_func(job.id, job.payload)
 
