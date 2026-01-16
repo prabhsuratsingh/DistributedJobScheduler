@@ -1,7 +1,9 @@
 from datetime import datetime
 from time import sleep
+from typing import List
 from uuid import uuid4
 
+from app.core.queue import enqueue_job
 from app.database.db import SessionLocal
 from app.models.job import Job
 from app.models.job_run import JobRuns
@@ -12,7 +14,7 @@ def scheduler():
     db = SessionLocal()
 
     while True:
-        created_runs = []
+        created_runs: List[JobRuns] = []
 
         with db.begin():
             jobs = db.query(Job).filter(
@@ -40,8 +42,7 @@ def scheduler():
                         JobRuns.status : JobStatus.ENQUEUED
                     })
                 if updated == 1:
-                    #push run id to redis queue
-                    pass
+                    enqueue_job(run.run_id)
                 else:
                     continue
 
@@ -63,8 +64,7 @@ def scheduler():
                         JobRuns.status : JobStatus.ENQUEUED
                     })
                 if updated == 1:
-                    #push run id to redis queue
-                    pass
+                    enqueue_job(run.run_id)
                 else:
                     continue
             except:
