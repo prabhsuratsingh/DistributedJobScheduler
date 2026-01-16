@@ -6,5 +6,6 @@ class JobStatus(Enum):
     CREATED = "created"
     ENQUEUED = "enqueued"
     RUNNING = "running"
-    COMPLETED = "completed"
+    SUCCESS = "success"
     FAILED = "failed"
+    COMPLETED = "completed" 
